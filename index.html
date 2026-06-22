@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="en">
+<link rel="icon" type="image/png" href="favicon.png">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gacha Pack Simulator</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-color: #f8fafc;
+            --accent-color: #3b82f6;
+            
+            /* Rarity Colors */
+            --common: #94a3b8;
+            --rare: #3b82f6;
+            --epic: #a855f7;
+            --legendary: #eab308;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative; /* Diperlukan agar penempatan tombol reset di pojok kiri bawah akurat */
+            padding-bottom: 80px; /* Memberikan ruang ekstra di bawah agar tidak menutupi konten */
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto 30px auto;
+            background: rgba(30, 41, 59, 0.7);
+            padding: 15px 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo h1 {
+            font-size: 24px;
+            background: linear-gradient(45deg, #ef4444, #a855f7, #eab308, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .audio-btn {
+            background: #334155;
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            padding: 8px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+        .audio-btn.muted {
+            background: #ef4444;
+            border-color: #ef4444;
+        }
+
+        .currency-display {
+            font-size: 20px;
+            font-weight: bold;
+            color: #22c55e;
+            background: rgba(34, 197, 94, 0.1);
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid rgba(34, 197, 94, 0.2);
+        }
+
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 40px;
+        }
+
+        /* Shop / Packs Section */
+        .shop-section {
+            text-align: center;
+        }
+
+        .section-title {
+            margin-bottom: 25px;
+            font-size: 24px;
+            position: relative;
+            display: inline-block;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--accent-color);
+            border-radius: 2px;
+        }
+
+        .pack-group-title {
+            text-align: left;
+            font-size: 18px;
+            color: #94a3b8;
+            margin: 20px 0 15px 5px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .packs-container {
+            display: flex;
+            justify-content: flex-start;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        .pack-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 20px;
+            width: 215px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .pack-card:hover { transform: translateY(-5px); }
+        .pack-card.starter-pack { box-shadow: 0 10px 15px rgba(100, 116, 139, 0.1); border-top: 5px solid #64748b; }
+        .pack-card.common-pack { box-shadow: 0 10px 15px rgba(148, 163, 184, 0.15); border-top: 5px solid var(--common); }
+        .pack-card.rare-pack { box-shadow: 0 10px 15px rgba(59, 130, 246, 0.2); border-top: 5px solid var(--rare); }
+        .pack-card.ancient-pack { box-shadow: 0 10px 15px rgba(168, 85, 247, 0.25); border-top: 5px solid var(--epic); }
+        .pack-card.legendary-pack { box-shadow: 0 10px 15px rgba(234, 179, 8, 0.3); border-top: 5px solid var(--legendary); }
+
+        .pack-art {
+            width: 110px;
+            height: 150px;
+            margin: 0 auto 15px auto;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.4);
+            text-transform: uppercase;
+            text-align: center;
+            padding: 5px;
+        }
+
+        .starter-pack .pack-art { background: linear-gradient(135deg, #475569, #1e293b); color: #cbd5e1; }
+        .common-pack .pack-art { background: linear-gradient(135deg, #64748b, #334155); color: #f1f5f9; }
+        .rare-pack .pack-art { background: linear-gradient(135deg, #1d4ed8, #1e3a8a); color: #bfdbfe; }
+        .ancient-pack .pack-art { background: linear-gradient(135deg, #6b21a8, #4c1d95); color: #e9d5ff; }
+        .legendary-pack .pack-art { background: linear-gradient(135deg, #b45309, #78350f); color: #fef08a; }
+        
+        .special-p1 .pack-art { background: linear-gradient(135deg, #0d9488, #115e59); color: #ccfbf1; }
+        .special-p2 .pack-art { background: linear-gradient(135deg, #0891b2, #155e75); color: #cffafe; }
+        .special-p3 .pack-art { background: linear-gradient(135deg, #db2777, #9d174d); color: #fce7f3; }
+        .special-p4 .pack-art { background: linear-gradient(135deg, #1e1b4b, #311042); color: #fae8ff; }
+        .special-p5 .pack-art { background: linear-gradient(135deg, #451a03, #000000); color: #fef08a; border: 1px solid #eab308; }
+
+        .pack-name { font-size: 16px; font-weight: bold; margin-bottom: 5px; min-height: 44px; display: flex; align-items: center; justify-content: center;}
+        .pack-price { font-size: 16px; color: #22c55e; font-weight: 600; margin-bottom: 15px; }
+        
+        .buy-btn {
+            background: var(--accent-color); color: white; border: none; padding: 10px 15px;
+            border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%;
+            transition: background 0.2s; font-size: 13px;
+        }
+        .buy-btn:hover { background: #2563eb; }
+        .buy-btn:disabled { background: #475569; cursor: not-allowed; opacity: 0.5; }
+
+        /* Gacha Overlay & Animation */
+        .gacha-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.98); z-index: 1000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease; padding: 20px;
+        }
+        .gacha-overlay.active { opacity: 1; pointer-events: auto; }
+        .opening-pack-container { perspective: 1000px; margin-bottom: 30px; }
+        
+        .animated-pack {
+            width: 160px; height: 220px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; font-weight: bold; box-shadow: 0 0 40px rgba(255,255,255,0.3);
+            text-align: center; padding: 10px;
+        }
+        .shake { animation: shakePack 0.4s ease infinite; }
+        .burst { animation: burstPack 0.5s ease forwards; }
+
+        @keyframes shakePack {
+            0% { transform: rotate(0deg) scale(1); }
+            25% { transform: rotate(-8deg) scale(1.05); }
+            75% { transform: rotate(8deg) scale(1.05); }
+            100% { transform: rotate(0deg) scale(1); }
+        }
+        @keyframes burstPack {
+            0% { transform: scale(1); opacity: 1; filter: brightness(1); }
+            50% { transform: scale(1.4); opacity: 0.8; filter: brightness(2.5); }
+            100% { transform: scale(0); opacity: 0; filter: brightness(4); }
+        }
+
+        .gacha-results {
+            display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px;
+            max-width: 950px; width: 100%; justify-content: center;
+        }
+        @media (max-width: 768px) { .gacha-results { grid-template-columns: repeat(2, 1fr); } }
+
+        /* Card Stylings */
+        .game-card {
+            background: #1e293b; border-radius: 12px; padding: 12px; text-align: center;
+            border: 2px solid var(--common); aspect-ratio: 2/3; display: flex;
+            flex-direction: column; justify-content: space-between; position: relative;
+            overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .card-rarity-tag { font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; display: inline-block; margin: 0 auto; }
+        .card-image { font-size: 40px; margin: 10px 0; }
+        .card-name { font-size: 13px; font-weight: bold; margin-bottom: 5px; height: 36px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .card-value { font-size: 12px; color: #22c55e; font-weight: 600; }
+        .card-count-badge { position: absolute; top: 8px; right: 8px; background: #3b82f6; color: white; font-size: 11px; font-weight: bold; padding: 2px 7px; border-radius: 10px; z-index: 2; }
+        
+        .card-new-badge {
+            position: absolute; top: 8px; right: 8px; background: #22c55e; color: #000;
+            font-size: 10px; font-weight: 900; padding: 2px 6px; border-radius: 4px;
+            z-index: 3; box-shadow: 0 0 8px #22c55e; animation: blinkNew 1s ease infinite alternate;
+        }
+
+        @keyframes blinkNew {
+            0% { opacity: 0.7; transform: scale(0.95); }
+            100% { opacity: 1; transform: scale(1.05); }
+        }
+        
+        .fav-btn {
+            position: absolute; top: 6px; left: 6px; background: rgba(15, 23, 42, 0.6);
+            border: none; color: #94a3b8; font-size: 16px; cursor: pointer;
+            width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 5;
+        }
+        .fav-btn.is-fav { color: #ef4444; text-shadow: 0 0 5px #ef4444; }
+
+        /* Rarity Visual Borders & Effects */
+        .rarity-common { border-color: var(--common); }
+        .rarity-common .card-rarity-tag { background: var(--common); color: #000; }
+        .rarity-rare { border-color: var(--rare); box-shadow: 0 0 10px rgba(59,130,246,0.3); }
+        .rarity-rare .card-rarity-tag { background: var(--rare); color: #fff; }
+        .rarity-epic { border-color: var(--epic); box-shadow: 0 0 15px rgba(168,85,247,0.4); }
+        .rarity-epic .card-rarity-tag { background: var(--epic); color: #fff; }
+        .rarity-legendary { border-color: var(--legendary); animation: pulseGlow 1.5s infinite alternate; }
+        .rarity-legendary .card-rarity-tag { background: var(--legendary); color: #000; }
+
+        .rarity-rainbow {
+            border-color: #fff; background: linear-gradient(135deg, #1e293b, #0f172a);
+            animation: rainbowGlow 3s infinite linear;
+        }
+        .rarity-rainbow .card-rarity-tag {
+            background: linear-gradient(45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3);
+            color: white; text-shadow: 1px 1px 2px black;
+        }
+
+        @keyframes pulseGlow { 0% { box-shadow: 0 0 5px rgba(234,179,8,0.4); } 100% { box-shadow: 0 0 20px rgba(234,179,8,0.7); } }
+        @keyframes rainbowGlow {
+            0% { box-shadow: 0 0 10px #ff0000; border-color: #ff0000; }
+            17% { box-shadow: 0 0 10px #ff7f00; border-color: #ff7f00; }
+            33% { box-shadow: 0 0 10px #ffff00; border-color: #ffff00; }
+            50% { box-shadow: 0 0 10px #00ff00; border-color: #00ff00; }
+            67% { box-shadow: 0 0 10px #0000ff; border-color: #0000ff; }
+            84% { box-shadow: 0 0 10px #4b0082; border-color: #4b0082; }
+            100% { box-shadow: 0 0 10px #9400d3; border-color: #9400d3; }
+        }
+
+        .game-card.is-locked {
+            border-color: #334155 !important;
+            background: #0f172a !important;
+            box-shadow: none !important;
+            animation: none !important;
+            opacity: 0.5;
+        }
+        .game-card.is-locked .card-rarity-tag { background: #475569 !important; color: #94a3b8 !important; text-shadow: none !important; }
+        .game-card.is-locked .card-image { filter: brightness(0) invert(0.3); }
+        .game-card.is-locked .card-name { color: #64748b; }
+        .game-card.is-locked .card-value { color: #475569; }
+
+        .reveal-card { opacity: 0; transform: scale(0.5) translateY(20px); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .reveal-card.show { opacity: 1; transform: scale(1) translateY(0); }
+        
+        .close-gacha-btn { margin-top: 30px; background: white; color: black; border: none; padding: 12px 30px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+
+        /* VIEW MODE TABS */
+        .view-mode-tabs {
+            display: flex; gap: 10px; margin-bottom: 20px;
+            border-bottom: 2px solid #1e293b; padding-bottom: 10px;
+            align-items: center;
+        }
+        .tab-btn {
+            background: none; border: none; color: #64748b; font-size: 18px;
+            font-weight: bold; cursor: pointer; padding: 5px 15px; position: relative;
+            transition: color 0.2s;
+        }
+        .tab-btn.active { color: #3b82f6; }
+        .tab-btn.active::after {
+            content: ''; position: absolute; bottom: -12px; left: 0;
+            width: 100%; height: 4px; background: #3b82f6; border-radius: 2px;
+        }
+
+        /* Controls Panel */
+        .controls-panel {
+            background: rgba(30, 41, 59, 0.4); padding: 15px; border-radius: 12px;
+            margin-bottom: 20px; display: flex; justify-content: space-between;
+            align-items: center; gap: 20px; flex-wrap: wrap; border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .filter-container { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+        
+        .filter-btn {
+            background: #1e293b; color: #94a3b8; border: 1px solid rgba(255,255,255,0.05);
+            padding: 8px 16px; border-radius: 20px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 13px;
+        }
+        .filter-btn:hover { background: #334155; color: white; }
+        .filter-btn.active[data-filter="all"] { background: var(--accent-color); color: white; }
+        .filter-btn.active[data-filter="fav"] { background: #ef4444; color: white; }
+        .filter-btn.active[data-filter="common"] { background: var(--common); color: black; }
+        .filter-btn.active[data-filter="rare"] { background: var(--rare); color: white; }
+        .filter-btn.active[data-filter="epic"] { background: var(--epic); color: white; }
+        .filter-btn.active[data-filter="legendary"] { background: var(--legendary); color: black; }
+        .filter-btn.active[data-filter="rainbow"] { background: linear-gradient(45deg, red, blue); color: white; }
+
+        .sell-all-btn {
+            background: #dc2626; color: white; border: none; padding: 8px 16px; 
+            border-radius: 20px; font-weight: bold; cursor: pointer; transition: background 0.2s; font-size: 13px;
+            box-shadow: 0 0 10px rgba(220, 38, 38, 0.3);
+        }
+        .sell-all-btn:hover { background: #b91c1c; }
+
+        .sort-container { display: flex; align-items: center; gap: 10px; }
+        .sort-container label { font-size: 14px; font-weight: 600; color: #94a3b8; }
+        .sort-dropdown {
+            background: #1e293b; color: white; border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 8px 14px; border-radius: 8px; font-weight: 600; cursor: pointer; outline: none;
+        }
+
+        .collection-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 20px; }
+        .sell-btn { background: #ef4444; color: white; border: none; padding: 6px 0; border-radius: 6px; font-weight: bold; margin-top: 8px; cursor: pointer; font-size: 12px; width: 100%; }
+        .sell-btn:hover { background: #dc2626; }
+        .sell-btn:disabled { background: #475569; cursor: not-allowed; opacity: 0.4; }
+        .empty-message { grid-column: 1 / -1; text-align: center; color: #64748b; padding: 40px; font-style: italic; }
+        
+        .completion-rate { font-size: 14px; font-weight: bold; color: #eab308; background: rgba(234, 179, 8, 0.1); padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(234, 179, 8, 0.2); }
+
+        /* Reset Button Style (Bottom Left Corner) */
+        .reset-progress-btn {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(30, 41, 59, 0.8);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            z-index: 100;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+        .reset-progress-btn:hover {
+            background: #ef4444;
+            color: #ffffff;
+            box-shadow: 0 0 12px rgba(239, 68, 68, 0.5);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="audio-bgm" src="bgm.mp3" loop></audio>
+    <audio id="sound-shake" src="shake.mp3"></audio>
+    <audio id="sound-flip-normal" src="card_flip.mp3"></audio>
+    <audio id="sound-flip-high" src="card_epic.mp3"></audio>
+    <audio id="sound-flip-rainbow" src="card_rainbow.mp3"></audio>
+    <audio id="sound-sell" src="coins.mp3"></audio>
+
+    <header>
+        <div class="logo"><h1>Card Gacha Simulator</h1></div>
+        <div class="header-controls">
+            <button class="audio-btn muted" id="audio-toggle" onclick="toggleBGM()">🔇</button>
+            <div class="currency-display">Coins: $<span id="balance">50</span></div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <section class="shop-section">
+            <h2 class="section-title">Buy Gacha Packs</h2>
+            
+            <div class="pack-group-title">REGULAR EDITION</div>
+            <div class="packs-container">
+                <div class="pack-card starter-pack">
+                    <div class="pack-art">STARTER</div>
+                    <div class="pack-name">Starter Pack</div><div class="pack-price">$25</div>
+                    <button class="buy-btn" id="btn-starter" onclick="buyPack('starter')">Buy (10 Cards)</button>
+                </div>
+                <div class="pack-card common-pack">
+                    <div class="pack-art">COMMON</div>
+                    <div class="pack-name">Normal Pack</div><div class="pack-price">$500</div>
+                    <button class="buy-btn" id="btn-common" onclick="buyPack('common')">Buy (10 Cards)</button>
+                </div>
+                <div class="pack-card rare-pack">
+                    <div class="pack-art">RARE+</div>
+                    <div class="pack-name">Super Pack</div><div class="pack-price">$1,125</div>
+                    <button class="buy-btn" id="btn-rare" onclick="buyPack('rare')">Buy (10 Cards)</button>
+                </div>
+                <div class="pack-card ancient-pack">
+                    <div class="pack-art">ANCIENT</div>
+                    <div class="pack-name">Ancient Pack</div><div class="pack-price">$5,000</div>
+                    <button class="buy-btn" id="btn-ancient" onclick="buyPack('ancient')">Buy (10 Cards)</button>
+                </div>
+                <div class="pack-card legendary-pack">
+                    <div class="pack-art">LEGEND</div>
+                    <div class="pack-name">God Pack</div><div class="pack-price">$10,500</div>
+                    <button class="buy-btn" id="btn-legendary" onclick="buyPack('legendary')">Buy (10 Cards)</button>
+                </div>
+            </div>
+
+            <div class="pack-group-title" style="color: #d946ef;">SPECIAL EXCLUSIVE EDITION</div>
+            <div class="packs-container">
+                <div class="pack-card special-pack special-p1">
+                    <div class="pack-art">ROOKIE</div>
+                    <div class="pack-name">Rookie Bundle</div><div class="pack-price">$100</div>
+                    <button class="buy-btn" id="btn-special_p1" onclick="buyPack('special_p1')">Buy (10 Cards)</button>
+                </div>
+                <div class="pack-card special-pack special-p2">
+                    <div class="pack-art">CYBER</div>
+                    <div class="pack-name">Cyber Cyber Pack</div><div class="pack-price">$900</div>
+                    <button class="buy-btn" id="btn-special_p2" onclick="buyPack('special_p2')">Buy (10 Cards)</button>
+                </div>
+                <div class="pack-card special-pack special-p3">
+                    <div class="pack-art">MYSTIC</div>
+                    <div class="pack-name">Mystic Pack</div><div class="pack-price">$3,125</div>
+                    <button class="buy-btn" id="btn-special_p3" onclick="buyPack('special_p3')">Buy (10 Cards)</button>
+                </div>
+                <div class="pack-card special-pack special-p4">
+                    <div class="pack-art">SHADOW</div>
+                    <div class="pack-name">Shadow Realm Pack</div><div class="pack-price">$8,910</div>
+                    <button class="buy-btn" id="btn-special_p4" onclick="buyPack('special_p4')">Buy (10 Cards)</button>
+                </div>
+                <div class="pack-card special-pack special-p5">
+                    <div class="pack-art">COSMIC</div>
+                    <div class="pack-name">Cosmic God Pack</div><div class="pack-price">$15,105</div>
+                    <button class="buy-btn" id="btn-special_p5" onclick="buyPack('special_p5')">Buy (10 Cards)</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="collection-section">
+            <div class="view-mode-tabs">
+                <button class="tab-btn active" id="tab-collection" onclick="switchViewMode('collection')">Active Storage</button>
+                <button class="tab-btn" id="tab-library" onclick="switchViewMode('library')">Album Library</button>
+                <div class="completion-rate" id="completion-stats" style="margin-left: auto; display: none;">Album Progress: 0/0</div>
+            </div>
+            
+            <div class="controls-panel">
+                <div class="filter-container">
+                    <button class="filter-btn active" data-filter="all" onclick="changeFilter('all')">ALL</button>
+                    <button class="filter-btn" id="filter-fav-btn" data-filter="fav" onclick="changeFilter('fav')">❤ FAV</button>
+                    <button class="filter-btn" data-filter="common" onclick="changeFilter('common')">COMMON</button>
+                    <button class="filter-btn" data-filter="rare" onclick="changeFilter('rare')">RARE</button>
+                    <button class="filter-btn" data-filter="epic" onclick="changeFilter('epic')">EPIC</button>
+                    <button class="filter-btn" data-filter="legendary" onclick="changeFilter('legendary')">LEGENDARY</button>
+                    <button class="filter-btn" data-filter="rainbow" onclick="changeFilter('rainbow')">🌈 RAINBOW</button>
+                    <button class="sell-all-btn" id="sell-all-btn" onclick="sellAllNonFavorites()">Sell All Non-Favs</button>
+                </div>
+                
+                <div class="sort-container" id="sort-wrapper">
+                    <label for="sort-select">Sort by:</label>
+                    <select id="sort-select" class="sort-dropdown" onchange="changeSort()">
+                        <option value="rarity-desc">Rarity: High to Low</option>
+                        <option value="rarity-asc">Rarity: Low to High</option>
+                        <option value="price-desc">Price: High to Low</option>
+                        <option value="price-asc">Price: Low to High</option>
+                        <option value="count-desc">Owned: Highest</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="collection-grid" id="collection-display"></div>
+        </section>
+    </div>
+
+    <div class="gacha-overlay" id="gacha-overlay">
+        <div class="opening-pack-container" id="pack-stage"></div>
+        <div class="gacha-results" id="results-stage"></div>
+        <button class="close-gacha-btn" id="close-gacha-btn" style="display:none;" onclick="closeGachaOverlay()">Add to Collection</button>
+    </div>
+
+    <!-- Reset Progress Button Component -->
+    <button class="reset-progress-btn" onclick="resetGameProgress()">⚠ Reset Progress</button>
+
+    <script>
+        let userBalance = 50;
+        let myCollection = {};
+        let pokedexLog = {}; 
+        let currentFilter = 'all';
+        let currentSort = 'rarity-desc';
+        let currentViewMode = 'collection'; 
+        let isMuted = true;
+
+        const PACKS = {
+            starter: { price: 25, name: 'Starter Pack', class: 'starter-pack', type: 'regular' },
+            common: { price: 500, name: 'Normal Pack', class: 'common-pack', type: 'regular' },
+            rare: { price: 1125, name: 'Super Pack', class: 'rare-pack', type: 'regular' },
+            ancient: { price: 5000, name: 'Ancient Pack', class: 'ancient-pack', type: 'regular' },
+            legendary: { price: 10500, name: 'God Pack', class: 'legendary-pack', type: 'regular' },
+            special_p1: { price: 100, name: 'Rookie Bundle', class: 'special-pack special-p1', type: 'special' },
+            special_p2: { price: 900, name: 'Cyber Cyber Pack', class: 'special-pack special-p2', type: 'special' },
+            special_p3: { price: 3125, name: 'Mystic Pack', class: 'special-pack special-p3', type: 'special' },
+            special_p4: { price: 8910, name: 'Shadow Realm Pack', class: 'special-pack special-p4', type: 'special' },
+            special_p5: { price: 15105, name: 'Cosmic God Pack', class: 'special-pack special-p5', type: 'special' }
+        };
+
+        const RARITY_WEIGHTS = { COMMON: 1, RARE: 2, EPIC: 3, LEGENDARY: 4, RAINBOW: 5 };
+
+        const CARD_POOL = {
+            REGULAR: {
+                COMMON: [
+                    { name: 'Pidgey Spirit', icon: '🐦', value: 4 }, { name: 'Rattata Bite', icon: '🐀', value: 4 },
+                    { name: 'Caterpie Silk', icon: '🐛', value: 5 }, { name: 'Oddish Herb', icon: '🌱', value: 5 },
+                    { name: 'Magikarp Splash', icon: '🐟', value: 6 }, { name: 'Zubat Radar', icon: '🦇', value: 4 },
+                    { name: 'Diglett Mud', icon: '🦫', value: 6 }, { name: 'Slime Acid', icon: '💧', value: 3 },
+                    { name: 'Geodude Roll', icon: '🪨', value: 5 }, { name: 'Ekans Tail', icon: '🐍', value: 5 },
+                    { name: 'Weedle Sting', icon: '🐛', value: 4 }, { name: 'Spearow Peck', icon: '🐦', value: 5 },
+                    { name: 'Sandshrew Claw', icon: '🦔', value: 6 }, { name: 'Nidoran Horn', icon: '🐰', value: 6 },
+                    { name: 'Vulpix Ember', icon: '🦊', value: 7 }, { name: 'Jigglypuff Song', icon: '🎈', value: 5 },
+                    { name: 'Paras Spore', icon: '🍄', value: 4 }, { name: 'Venonat Radar', icon: '🦋', value: 5 },
+                    { name: 'Meowth Coin', icon: '🐱', value: 7 }, { name: 'Psyduck Daze', icon: '🦆', value: 6 },
+                    { name: 'Mankey Punch', icon: '🐵', value: 6 }, { name: 'Poliwag Swim', icon: '🌀', value: 5 },
+                    { name: 'Machop Power', icon: '💪', value: 6 }, { name: 'Bellsprout Root', icon: '🌱', value: 4 },
+                    { name: 'Tentacool Sting', icon: '🦑', value: 5 }, { name: 'Magnemite Volt', icon: '🧲', value: 6 },
+                    { name: 'Doduo Run', icon: '🐦', value: 6 }, { name: 'Grimer Sludge', icon: '💩', value: 4 },
+                    { name: 'Shellder Shell', icon: '🦪', value: 6 }, { name: 'Drowzee Hypno', icon: '🐘', value: 5 },
+                    { name: 'Krabby Pinch', icon: '🦀', value: 5 }, { name: 'Voltorb Boom', icon: '🔴', value: 6 },
+                    { name: 'Exeggcute Seed', icon: '🥚', value: 5 }, { name: 'Cubone Bone', icon: '🦴', value: 7 },
+                    { name: 'Koffing Gas', icon: '☁️', value: 4 }, { name: 'Rhyhorn Stamp', icon: '🦏', value: 7 },
+                    { name: 'Horsea Ink', icon: '🐴', value: 6 }, { name: 'Goldeen Fin', icon: '🐠', value: 5 },
+                    { name: 'Staryu Core', icon: '⭐', value: 6 }, { name: 'Omanyte Fossil', icon: '🐚', value: 7 }
+                ],
+                RARE: [
+                    { name: 'Pikachu Spark', icon: '⚡', value: 25 }, { name: 'Charmander Flame', icon: '🔥', value: 30 },
+                    { name: 'Squirtle Foam', icon: '💧', value: 30 }, { name: 'Bulbasaur Vine', icon: '🍃', value: 30 },
+                    { name: 'Eevee Adapt', icon: '🦊', value: 35 }, { name: 'Growlithe Guard', icon: '🐕', value: 28 },
+                    { name: 'Raichu Thunder', icon: '⚡', value: 45 }, { name: 'Sandslash Spike', icon: '🦔', value: 38 },
+                    { name: 'Clefable Moon', icon: '🧚', value: 40 }, { name: 'Ninetales Curse', icon: '🦊', value: 50 },
+                    { name: 'Golduck Mind', icon: '🦆', value: 42 }, { name: 'Primeape Rage', icon: '🐵', value: 39 },
+                    { name: 'Arcanine Noble', icon: '🦁', value: 55 }, { name: 'Poliwrath Crush', icon: '🐸', value: 44 },
+                    { name: 'Machoke Muscle', icon: '💪', value: 40 }, { name: 'Weepinbell Acid', icon: '🌱', value: 36 },
+                    { name: 'Tentacruel Toxic', icon: '🦑', value: 45 }, { name: 'Rapidash Gallop', icon: '🦄', value: 48 },
+                    { name: 'Slowbro Shell', icon: '🦦', value: 42 }, { name: 'Magneton Tri', icon: '🧲', value: 46 },
+                    { name: 'Dewgong Ice', icon: '🦭', value: 45 }, { name: 'Muk Poison', icon: '🧪', value: 38 },
+                    { name: 'Cloyster Guard', icon: '🦪', value: 47 }, { name: 'Onix Boulder', icon: '🪨', value: 40 },
+                    { name: 'Hypno Dream', icon: '🔮', value: 42 }, { name: 'Kingler Vice', icon: '🦀', value: 40 },
+                    { name: 'Marowak Ghost', icon: '🦴', value: 45 }, { name: 'Hitmonlee Kick', icon: '🥋', value: 43 },
+                    { name: 'Hitmonchan Blow', icon: '🥊', value: 43 }, { name: 'Weezing Nebula', icon: '☣️', value: 41 },
+                    { name: 'Rhydon Drill', icon: '🦏', value: 48 }, { name: 'Chansey Egg', icon: '🥚', value: 52 },
+                    { name: 'Tangela Vine', icon: '🍇', value: 38 }, { name: 'Seadra Needle', icon: '🧜', value: 42 },
+                    { name: 'Seaking Horn', icon: '🐠', value: 40 }, { name: 'Starmie Gem', icon: '🌟', value: 46 },
+                    { name: 'Scyther Slash', icon: '🦗', value: 55 }, { name: 'Jynx Freeze', icon: '💃', value: 44 },
+                    { name: 'Electabuzz Shock', icon: '🐯', value: 50 }, { name: 'Magmar Magma', icon: '🔥', value: 50 }
+                ],
+                EPIC: [
+                    { name: 'Gengar Nightmare', icon: '👻', value: 110 }, { name: 'Gyarados Hydro', icon: '🐉', value: 125 },
+                    { name: 'Alakazam Tele', icon: '🔮', value: 130 }, { name: 'Snorlax Rest', icon: '🐻', value: 105 },
+                    { name: 'Charizard Blast', icon: '🦖', value: 180 }, { name: 'Venusaur Bloom', icon: '🌳', value: 160 },
+                    { name: 'Blastoise Cannon', icon: '🐢', value: 165 }, { name: 'Dragonite Gale', icon: '🐲', value: 195 },
+                    { name: 'Lapras Song', icon: '🦕', value: 140 }, { name: 'Ditto Mimic', icon: '🧬', value: 115 },
+                    { name: 'Pinsir Grip', icon: '🪲', value: 110 }, { name: 'Tauros Stamp', icon: '🐂', value: 112 },
+                    { name: 'Porygon Cyber', icon: '👾', value: 120 }, { name: 'Aerodactyl Sky', icon: '🦅', value: 150 },
+                    { name: 'Machamp Strike', icon: '💥', value: 145 }, { name: 'Victreebel Trap', icon: '🪴', value: 125 },
+                    { name: 'Golem Quake', icon: '🪨', value: 135 }, { name: 'Slowking King', icon: '👑', value: 140 },
+                    { name: 'Steelix Iron', icon: '⛓️', value: 155 }, { name: 'Scizor Steel', icon: '✂️', value: 160 },
+                    { name: 'Heracross Megahorn', icon: '🪲', value: 130 }, { name: 'Ursaring Claw', icon: '🐻', value: 128 },
+                    { name: 'Houndoom Inferno', icon: '🐕', value: 138 }, { name: 'Kingdra Vortex', icon: '🐉', value: 150 },
+                    { name: 'Donphan Roll', icon: '🐘', value: 126 }, { name: 'Tyranitar Armor', icon: '🦖', value: 190 },
+                    { name: 'Gardevoir Warp', icon: '👗', value: 145 }, { name: 'Aggron Heavy', icon: '🛡️', value: 155 },
+                    { name: 'Flygon Sand', icon: '🐉', value: 150 }, { name: 'Salamence Roar', icon: '🐲', value: 185 }
+                ],
+                LEGENDARY: [
+                    { name: 'Mewtwo Overlord', icon: '🌌', value: 550 }, { name: 'Rayquaza Sky', icon: '🐉', value: 700 },
+                    { name: 'Arceus Creator', icon: '👑', value: 1100 }, { name: 'Lugia Aero', icon: '🦅', value: 650 },
+                    { name: 'Ho-Oh Phoenix', icon: '🐦', value: 680 }
+                ]
+            },
+            SPECIAL: {
+                COMMON: [
+                    { name: 'Chikorita Leaf', icon: '🍃', value: 5 }, { name: 'Cyndaquil Spark', icon: '🐭', value: 5 },
+                    { name: 'Totodile Jaw', icon: '🐊', value: 5 }, { name: 'Sentret Watch', icon: '🐿️', value: 4 },
+                    { name: 'Hoothoot Clock', icon: '🦉', value: 4 }, { name: 'Ledyba Star', icon: '🐞', value: 4 },
+                    { name: 'Spinarak Web', icon: '🕷️', value: 4 }, { name: 'Chinchou Neon', icon: '🐟', value: 5 },
+                    { name: 'Pichu Tiny', icon: '⚡', value: 6 }, { name: 'Cleffa Star', icon: '⭐', value: 5 },
+                    { name: 'Igglybuff Puff', icon: '🎈', value: 5 }, { name: 'Togepi Shell', icon: '🥚', value: 7 },
+                    { name: 'Natu Oracle', icon: '🐦', value: 5 }, { name: 'Mareep Wool', icon: '🐑', value: 5 },
+                    { name: 'Marill Bubble', icon: '🔵', value: 6 }, { name: 'Sudowoodo Fake', icon: '🌳', value: 6 },
+                    { name: 'Hoppip Float', icon: '💮', value: 4 }, { name: 'Aipom Hand', icon: '🐒', value: 5 },
+                    { name: 'Sunkern Sprout', icon: '🌻', value: 4 }, { name: 'Yanma Buzz', icon: '🦋', value: 5 },
+                    { name: 'Wooper Mud', icon: '🐸', value: 5 }, { name: 'Murkrow Dusk', icon: '🐦', value: 6 },
+                    { name: 'Misdreavus Wail', icon: '👻', value: 6 }, { name: 'Unown Letter', icon: '🔤', value: 6 },
+                    { name: 'Girafarig Tail', icon: '🦒', value: 6 }, { name: 'Pineco Cone', icon: '🌲', value: 4 },
+                    { name: 'Dunsparce Burrow', icon: '🐛', value: 5 }, { name: 'Gligar Glide', icon: '🦂', value: 6 },
+                    { name: 'Snubbull Bite', icon: '🐶', value: 5 }, { name: 'Qwilfish Puff', icon: '🐡', value: 5 }
+                ],
+                RARE: [
+                    { name: 'Bayleef Razor', icon: '🍃', value: 35 }, { name: 'Quilava Flame', icon: '🦡', value: 36 },
+                    { name: 'Croconaw Slash', icon: '🐊', value: 36 }, { name: 'Furret Speed', icon: '🦦', value: 28 },
+                    { name: 'Noctowl Wisdom', icon: '🦉', value: 32 }, { name: 'Ledian Comet', icon: '🐞', value: 30 },
+                    { name: 'Ariados Trap', icon: '🕷️', value: 31 }, { name: 'Lanturn Spark', icon: '🐟', value: 35 },
+                    { name: 'Xatu Eclipse', icon: '🦅', value: 38 }, { name: 'Flaaffy Charge', icon: '🐑', value: 34 },
+                    { name: 'Ampharos Beacon', icon: '💡', value: 48 }, { name: 'Azumarill Aqua', icon: '🐰', value: 39 },
+                    { name: 'Sudowoodo Rock', icon: '🪵', value: 33 }, { name: 'Skiploom Wind', icon: '🌱', value: 29 },
+                    { name: 'Jumpluff Cotton', icon: '☁️', value: 35 }, { name: 'Sunflora Sun', icon: '🌻', value: 30 },
+                    { name: 'Quagsire Damp', icon: '🦎', value: 37 }, { name: 'Honchkrow Don', icon: '🐦', value: 44 },
+                    { name: 'Mismagius Spell', icon: '🧙', value: 45 }, { name: 'Wobbuffet Counter', icon: '🧿', value: 40 },
+                    { name: 'Forretress Iron', icon: '🌰', value: 39 }, { name: 'Steelix Core', icon: '🔩', value: 46 },
+                    { name: 'Granbull Jaw', icon: '🐕', value: 34 }, { name: 'Scizor X', icon: '⚔️', value: 49 },
+                    { name: 'Shuckle Berry', icon: '🐢', value: 35 }, { name: 'Heracross Horn', icon: '🪲', value: 45 },
+                    { name: 'Sneasel Ice', icon: '🦝', value: 38 }, { name: 'Teddiursa Honey', icon: '🐻', value: 32 },
+                    { name: 'Ursaring Heavy', icon: '🐻', value: 44 }, { name: 'Slugma Core', icon: '🐌', value: 28 }
+                ],
+                EPIC: [
+                    { name: 'Meganium Bloom', icon: '🌸', value: 155 }, { name: 'Typhlosion Erupt', icon: '🌋', value: 170 },
+                    { name: 'Feraligatr Crunch', icon: '🐊', value: 165 }, { name: 'Crobat Swift', icon: '🦇', value: 130 },
+                    { name: 'Sudowoodo Master', icon: '🪨', value: 110 }, { name: 'Politoed Jive', icon: '🐸', value: 125 },
+                    { name: 'Espeon Sun', icon: '🔮', value: 160 }, { name: 'Umbreon Dark', icon: '🌙', value: 160 },
+                    { name: 'Slowking Oracle', icon: '🐚', value: 142 }, { name: 'Blissey Health', icon: '🥚', value: 150 },
+                    { name: 'Weavile Shadow', icon: '🐺', value: 145 }, { name: 'Skarmory Steel', icon: '🦅', value: 140 },
+                    { name: 'Houndoom Dark', icon: '🔥', value: 148 }, { name: 'Donphan Tusk', icon: '🐘', value: 132 },
+                    { name: 'Porygon2 Cyber', icon: '🤖', value: 135 }
+                ],
+                LEGENDARY: [
+                    { name: 'Raikou Thunder', icon: '🐯', value: 620 }, { name: 'Entei Volcano', icon: '🦁', value: 620 },
+                    { name: 'Suicune Aurora', icon: '🐆', value: 640 }, { name: 'Celebi Time', icon: '🧚', value: 800 },
+                    { name: 'Kyogre Primal', icon: '🐋', value: 950 }
+                ]
+            },
+            RAINBOW: [
+                { name: 'RAINBOW Mew Secret', icon: '✨', value: 3500 },
+                { name: 'RAINBOW Charizard X', icon: '👑', value: 4500 },
+                { name: 'RAINBOW Rayquaza Doom', icon: '🌌', value: 5000 }
+            ]
+        };
+
+        const DROP_RATES = {
+            starter:    { COMMON: 0.93, RARE: 0.06, EPIC: 0.01, LEGENDARY: 0.00, RAINBOW: 0.00 },
+            common:     { COMMON: 0.74, RARE: 0.20, EPIC: 0.05, LEGENDARY: 0.01, RAINBOW: 0.00 },
+            rare:       { COMMON: 0.30, RARE: 0.52, EPIC: 0.15, LEGENDARY: 0.03, RAINBOW: 0.00 },
+            ancient:    { COMMON: 0.10, RARE: 0.39, EPIC: 0.45, LEGENDARY: 0.05, RAINBOW: 0.01 },
+            legendary:  { COMMON: 0.00, RARE: 0.17, EPIC: 0.55, LEGENDARY: 0.05, RAINBOW: 0.03 },
+            special_p1: { COMMON: 0.93, RARE: 0.06, EPIC: 0.01, LEGENDARY: 0.00, RAINBOW: 0.00 },
+            special_p2: { COMMON: 0.70, RARE: 0.20, EPIC: 0.08, LEGENDARY: 0.02, RAINBOW: 0.00 },
+            special_p3: { COMMON: 0.30, RARE: 0.45, EPIC: 0.17, LEGENDARY: 0.07, RAINBOW: 0.01 },
+            special_p4: { COMMON: 0.10, RARE: 0.25, EPIC: 0.45, LEGENDARY: 0.16, RAINBOW: 0.04 },
+            special_p5: { COMMON: 0.00, RARE: 0.10, EPIC: 0.35, LEGENDARY: 0.45, RAINBOW: 0.10 }
+        };
+
+        // Load Game Progress from LocalStorage (Auto-Save Feature)
+        function loadGameData() {
+            const savedBalance = localStorage.getItem('gacha_balance');
+            const savedCollection = localStorage.getItem('gacha_collection');
+            const savedPokedex = localStorage.getItem('gacha_pokedex');
+
+            if (savedBalance !== null) userBalance = parseInt(savedBalance, 10);
+            if (savedCollection !== null) myCollection = JSON.parse(savedCollection);
+            if (savedPokedex !== null) pokedexLog = JSON.parse(savedPokedex);
+        }
+
+        // Save Game Progress to LocalStorage (Auto-Save Feature)
+        function saveGameData() {
+            localStorage.setItem('gacha_balance', userBalance);
+            localStorage.setItem('gacha_collection', JSON.stringify(myCollection));
+            localStorage.setItem('gacha_pokedex', JSON.stringify(pokedexLog));
+        }
+
+        function getTotalCardsInGame() {
+            let total = 0;
+            for (let r in CARD_POOL.REGULAR) { total += CARD_POOL.REGULAR[r].length; }
+            for (let r in CARD_POOL.SPECIAL) { total += CARD_POOL.SPECIAL[r].length; }
+            total += CARD_POOL.RAINBOW.length;
+            return total;
+        }
+
+        function toggleBGM() {
+            const bgm = document.getElementById('audio-bgm');
+            const btn = document.getElementById('audio-toggle');
+            if (isMuted) {
+                bgm.play().catch(e => console.log("Audio permissions enabled"));
+                isMuted = false;
+                btn.innerText = "🔊";
+                btn.classList.remove('muted');
+            } else {
+                bgm.pause();
+                isMuted = true;
+                btn.innerText = "🔇";
+                btn.classList.add('muted');
+            }
+        }
+
+        function playSound(audioId) {
+            const sound = document.getElementById(audioId);
+            if (sound) { sound.currentTime = 0; sound.play().catch(e => {}); }
+        }
+
+        function updateUI() {
+            document.getElementById('balance').innerText = userBalance.toLocaleString();
+            for (let pack in PACKS) {
+                document.getElementById(`btn-${pack}`).disabled = userBalance < PACKS[pack].price;
+            }
+            
+            const totalUnlocked = Object.keys(pokedexLog).length;
+            const totalCards = getTotalCardsInGame();
+            document.getElementById('completion-stats').innerText = `Album Progress: ${totalUnlocked}/${totalCards}`;
+            
+            renderMainDisplay();
+        }
+
+        function switchViewMode(mode) {
+            currentViewMode = mode;
+            document.getElementById('tab-collection').classList.toggle('active', mode === 'collection');
+            document.getElementById('tab-library').classList.toggle('active', mode === 'library');
+            
+            const favBtn = document.getElementById('filter-fav-btn');
+            const sellAllBtn = document.getElementById('sell-all-btn');
+            const sortWrapper = document.getElementById('sort-wrapper');
+            const stats = document.getElementById('completion-stats');
+
+            if (mode === 'library') {
+                favBtn.style.display = 'none'; 
+                sellAllBtn.style.display = 'none';
+                sortWrapper.style.display = 'none';
+                stats.style.display = 'block';
+                if (currentFilter === 'fav') currentFilter = 'all'; 
+            } else {
+                favBtn.style.display = 'block';
+                sellAllBtn.style.display = 'block';
+                sortWrapper.style.display = 'flex';
+                stats.style.display = 'none';
+            }
+            
+            renderMainDisplay();
+        }
+
+        function rollRarity(packType) {
+            const rates = DROP_RATES[packType]; const rand = Math.random(); let cumulative = 0;
+            for (let rarity in rates) {
+                cumulative += rates[rarity]; if (rand <= cumulative) return rarity;
+            }
+            return 'COMMON';
+        }
+
+        function buyPack(packType) {
+            const cost = PACKS[packType].price;
+            if (userBalance < cost) return alert("Not enough coins!");
+            userBalance -= cost; 
+            saveGameData(); // Auto-save after deduction
+            updateUI();
+
+            const packInfo = PACKS[packType];
+            let rolledCards = [];
+
+            for (let i = 0; i < 10; i++) {
+                let rarity = rollRarity(packType);
+                let pool = [];
+
+                if (rarity === 'RAINBOW') {
+                    pool = CARD_POOL.RAINBOW;
+                } else {
+                    if (packInfo.type === 'special') {
+                        pool = CARD_POOL.SPECIAL[rarity];
+                    } else {
+                        pool = CARD_POOL.REGULAR[rarity];
+                    }
+                }
+
+                let baseCard = pool[Math.floor(Math.random() * pool.length)];
+                let isBrandNew = !pokedexLog[baseCard.name];
+
+                rolledCards.push({ 
+                    name: baseCard.name, 
+                    icon: baseCard.icon, 
+                    value: baseCard.value, 
+                    rarity: rarity,
+                    isNewCard: isBrandNew 
+                });
+            }
+            window.currentGachaResult = rolledCards; triggerGachaAnimation(packType, rolledCards);
+        }
+
+        function triggerGachaAnimation(packType, cards) {
+            const overlay = document.getElementById('gacha-overlay');
+            const packStage = document.getElementById('pack-stage');
+            const resultsStage = document.getElementById('results-stage');
+            const closeBtn = document.getElementById('close-gacha-btn');
+
+            resultsStage.innerHTML = ''; closeBtn.style.display = 'none'; packStage.style.display = 'block';
+            packStage.innerHTML = `<div class="animated-pack ${PACKS[packType].class} shake"><div class="pack-art" style="height:100%">${PACKS[packType].name}</div></div>`;
+            overlay.classList.add('active');
+
+            playSound('sound-shake');
+
+            setTimeout(() => {
+                const pack = packStage.querySelector('.animated-pack');
+                if(pack) { pack.classList.remove('shake'); pack.classList.add('burst'); }
+            }, 1200);
+
+            setTimeout(() => {
+                packStage.style.display = 'none';
+                
+                function revealCardAtIndex(index) {
+                    if (index >= cards.length) {
+                        setTimeout(() => { closeBtn.style.display = 'block'; }, 300);
+                        return;
+                    }
+
+                    const card = cards[index];
+                    const cardEl = document.createElement('div');
+                    cardEl.className = `game-card rarity-${card.rarity.toLowerCase()} reveal-card`;
+                    const newBadgeHTML = card.isNewCard ? `<div class="card-new-badge">NEW</div>` : '';
+
+                    cardEl.innerHTML = `
+                        ${newBadgeHTML}
+                        <div class="card-rarity-tag">${card.rarity}</div>
+                        <div class="card-image">${card.icon}</div>
+                        <div class="card-name">${card.name}</div>
+                        <div class="card-value">$${card.value}</div>
+                    `;
+                    resultsStage.appendChild(cardEl);
+
+                    setTimeout(() => {
+                        cardEl.classList.add('show');
+                        if (card.rarity === 'RAINBOW') { playSound('sound-flip-rainbow'); } 
+                        else if (card.rarity === 'EPIC' || card.rarity === 'LEGENDARY') { playSound('sound-flip-high'); } 
+                        else { playSound('sound-flip-normal'); }
+                    }, 50);
+
+                    let nextDelay = 230; 
+                    if (card.rarity === 'EPIC' || card.rarity === 'LEGENDARY' || card.rarity === 'RAINBOW') {
+                        nextDelay = 900; 
+                    }
+
+                    setTimeout(() => { revealCardAtIndex(index + 1); }, nextDelay);
+                }
+
+                revealCardAtIndex(0);
+            }, 1700);
+        }
+
+        function closeGachaOverlay() {
+            if(window.currentGachaResult) {
+                window.currentGachaResult.forEach(card => {
+                    pokedexLog[card.name] = true; 
+                    if (myCollection[card.name]) { 
+                        myCollection[card.name].count += 1; 
+                    } else { 
+                        myCollection[card.name] = { ...card, count: 1, isFavorite: false }; 
+                    }
+                });
+                window.currentGachaResult = null;
+            }
+            document.getElementById('gacha-overlay').classList.remove('active'); 
+            saveGameData(); // Auto-save after gaining new cards
+            updateUI();
+        }
+
+        function toggleFavorite(cardName, event) {
+            event.stopPropagation();
+            if (myCollection[cardName]) { 
+                myCollection[cardName].isFavorite = !myCollection[cardName].isFavorite; 
+                saveGameData(); // Auto-save when favorite status changes
+                renderMainDisplay(); 
+            }
+        }
+
+        function changeFilter(filterType) {
+            currentFilter = filterType;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.getAttribute('data-filter') === filterType);
+            });
+            renderMainDisplay();
+        }
+
+        function changeSort() {
+            currentSort = document.getElementById('sort-select').value;
+            renderMainDisplay();
+        }
+
+        function renderMainDisplay() {
+            if (currentViewMode === 'collection') {
+                renderCollection();
+            } else {
+                renderLibrary();
+            }
+        }
+
+        function renderCollection() {
+            const container = document.getElementById('collection-display');
+            container.innerHTML = '';
+            const keys = Object.keys(myCollection);
+
+            let filteredKeys = keys.filter(key => {
+                if (currentFilter === 'all') return true;
+                if (currentFilter === 'fav') return myCollection[key].isFavorite;
+                return myCollection[key].rarity.toLowerCase() === currentFilter;
+            });
+
+            filteredKeys.sort((a, b) => {
+                const cardA = myCollection[a]; const cardB = myCollection[b];
+                if (currentSort === 'rarity-desc') return RARITY_WEIGHTS[cardB.rarity] - RARITY_WEIGHTS[cardA.rarity];
+                if (currentSort === 'rarity-asc') return RARITY_WEIGHTS[cardA.rarity] - RARITY_WEIGHTS[cardB.rarity];
+                if (currentSort === 'price-desc') return cardB.value - cardA.value;
+                if (currentSort === 'price-asc') return cardA.value - cardB.value;
+                if (currentSort === 'count-desc') return cardB.count - cardA.count;
+                return 0;
+            });
+
+            if (filteredKeys.length === 0) {
+                let msg = "No cards found in your storage.";
+                if (currentFilter === 'fav') msg = "No favorite cards set.";
+                else if (currentFilter !== 'all') msg = `No cards matching ${currentFilter.toUpperCase()} rarity.`;
+                container.innerHTML = `<div class="empty-message">${msg}</div>`; return;
+            }
+
+            filteredKeys.forEach(key => {
+                const card = myCollection[key]; const cardEl = document.createElement('div');
+                cardEl.className = `game-card rarity-${card.rarity.toLowerCase()}`;
+                const badgeHTML = card.count > 1 ? `<div class="card-count-badge">x${card.count}</div>` : '';
+                const favClass = card.isFavorite ? 'is-fav' : '';
+                const sellDisabled = card.isFavorite ? 'disabled' : '';
+                const sellText = card.isFavorite ? 'LOCKED' : 'Sell 1';
+
+                cardEl.innerHTML = `
+                    <button class="fav-btn ${favClass}" onclick="toggleFavorite('${card.name}', event)">❤</button>${badgeHTML}
+                    <div class="card-rarity-tag">${card.rarity}</div><div class="card-image">${card.icon}</div>
+                    <div class="card-name">${card.name}</div><div class="card-value">$${card.value}</div>
+                    <button class="sell-btn" ${sellDisabled} onclick="sellCard('${card.name}')">${sellText}</button>
+                `;
+                container.appendChild(cardEl);
+            });
+        }
+
+        function renderLibrary() {
+            const container = document.getElementById('collection-display');
+            container.innerHTML = '';
+
+            let masterLibraryList = [];
+
+            for (let rarity in CARD_POOL.REGULAR) {
+                CARD_POOL.REGULAR[rarity].forEach(item => {
+                    masterLibraryList.push({ ...item, rarity: rarity });
+                });
+            }
+            for (let rarity in CARD_POOL.SPECIAL) {
+                CARD_POOL.SPECIAL[rarity].forEach(item => {
+                    masterLibraryList.push({ ...item, rarity: rarity });
+                });
+            }
+            CARD_POOL.RAINBOW.forEach(item => {
+                masterLibraryList.push({ ...item, rarity: 'RAINBOW' });
+            });
+
+            if (currentFilter !== 'all') {
+                masterLibraryList = masterLibraryList.filter(item => item.rarity.toLowerCase() === currentFilter);
+            }
+
+            masterLibraryList.sort((a, b) => {
+                return RARITY_WEIGHTS[a.rarity] - RARITY_WEIGHTS[b.rarity];
+            });
+
+            masterLibraryList.forEach(item => {
+                const cardEl = document.createElement('div');
+                const hasUnlocked = pokedexLog[item.name]; 
+
+                if (hasUnlocked) {
+                    cardEl.className = `game-card rarity-${item.rarity.toLowerCase()}`;
+                    cardEl.innerHTML = `
+                        <div class="card-rarity-tag">${item.rarity}</div>
+                        <div class="card-image">${item.icon}</div>
+                        <div class="card-name">${item.name}</div>
+                        <div class="card-value">$${item.value}</div>
+                    `;
+                } else {
+                    cardEl.className = `game-card is-locked`;
+                    cardEl.innerHTML = `
+                        <div class="card-rarity-tag">${item.rarity}</div>
+                        <div class="card-image">🔒</div>
+                        <div class="card-name">???</div>
+                        <div class="card-value">Not Discovered</div>
+                    `;
+                }
+                container.appendChild(cardEl);
+            });
+        }
+
+        function sellCard(cardName) {
+            if (myCollection[cardName] && !myCollection[cardName].isFavorite) {
+                playSound('sound-sell');
+                userBalance += myCollection[cardName].value; myCollection[cardName].count -= 1;
+                if (myCollection[cardName].count <= 0) delete myCollection[cardName];
+                saveGameData(); // Auto-save after transaction
+                updateUI();
+            }
+        }
+
+        // Sell completely all cards that are not marked as favorite (With Confirmation Dialogue)
+        function sellAllNonFavorites() {
+            // Confirmation prompt added here
+            const confirmSell = confirm("Are you sure you want to sell ALL your non-favorite cards?");
+            if (!confirmSell) return;
+
+            const keys = Object.keys(myCollection);
+            let totalEarnings = 0;
+            let soldAny = false;
+
+            keys.forEach(cardName => {
+                const card = myCollection[cardName];
+                if (!card.isFavorite) {
+                    totalEarnings += (card.value * card.count);
+                    delete myCollection[cardName];
+                    soldAny = true;
+                }
+            });
+
+            if (soldAny) {
+                playSound('sound-sell');
+                userBalance += totalEarnings;
+                alert(`Successfully sold all non-favorite cards for a total of $${totalEarnings.toLocaleString()}!`);
+                saveGameData(); // Auto-save bulk transaction
+                updateUI();
+            } else {
+                alert("No non-favorite cards to sell in your active storage.");
+            }
+        }
+
+        // Reset Game Progress Function (With Confirmation Dialogue)
+        function resetGameProgress() {
+            // Confirmation prompt added here
+            const confirmReset = confirm("WARNING: This will wipe your balance, collection, and album data! Are you absolutely sure?");
+            if (!confirmReset) return;
+
+            localStorage.removeItem('gacha_balance');
+            localStorage.removeItem('gacha_collection');
+            localStorage.removeItem('gacha_pokedex');
+
+            // Re-initialize variables to default state
+            userBalance = 50;
+            myCollection = {};
+            pokedexLog = {};
+            currentFilter = 'all';
+            currentSort = 'rarity-desc';
+            currentViewMode = 'collection';
+
+            alert("Progress has been successfully reset!");
+            updateUI();
+        }
+
+        // Initialize Game
+        loadGameData();
+        updateUI();
+    </script>
+</body>
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<center>Copyright@ Ahmad Bilal</center>
+</html>
