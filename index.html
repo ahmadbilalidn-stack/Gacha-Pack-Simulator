@@ -426,12 +426,12 @@
                 <div class="pack-card starter-pack">
                     <div class="pack-art">STARTER</div>
                     <div class="pack-name">Starter Pack</div><div class="pack-price">$25</div>
-                    <button class="buy-btn" id="btn-starter" onclick="buyPack('starter')">Buy (10 Cards)</button>
+                    <button class="buy-btn" id="btn-starter" onclick="buyPack('starter')">Buy</button>
                 </div>
                 <div class="pack-card common-pack">
-                    <div class="pack-art">COMMON</div>
+                    <div class="pack-art">NORMAL</div>
                     <div class="pack-name">Normal Pack</div><div class="pack-price">$500</div>
-                    <button class="buy-btn" id="btn-common" onclick="buyPack('common')">Buy (10 Cards)</button>
+                    <button class="buy-btn" id="btn-common" onclick="buyPack('common')">Buy</button>
                 </div>
                 <div class="pack-card rare-pack">
                     <div class="pack-art">RARE+</div>
@@ -441,12 +441,12 @@
                 <div class="pack-card ancient-pack">
                     <div class="pack-art">ANCIENT</div>
                     <div class="pack-name">Ancient Pack</div><div class="pack-price">$5,000</div>
-                    <button class="buy-btn" id="btn-ancient" onclick="buyPack('ancient')">Buy (10 Cards)</button>
+                    <button class="buy-btn" id="btn-ancient" onclick="buyPack('ancient')">Buy</button>
                 </div>
                 <div class="pack-card legendary-pack">
                     <div class="pack-art">LEGEND</div>
                     <div class="pack-name">God Pack</div><div class="pack-price">$10,500</div>
-                    <button class="buy-btn" id="btn-legendary" onclick="buyPack('legendary')">Buy (10 Cards)</button>
+                    <button class="buy-btn" id="btn-legendary" onclick="buyPack('legendary')">Buy</button>
                 </div>
             </div>
 
@@ -455,27 +455,27 @@
                 <div class="pack-card special-pack special-p1">
                     <div class="pack-art">ROOKIE</div>
                     <div class="pack-name">Rookie Bundle</div><div class="pack-price">$100</div>
-                    <button class="buy-btn" id="btn-special_p1" onclick="buyPack('special_p1')">Buy (10 Cards)</button>
+                    <button class="buy-btn" id="btn-special_p1" onclick="buyPack('special_p1')">Buy</button>
                 </div>
                 <div class="pack-card special-pack special-p2">
                     <div class="pack-art">CYBER</div>
                     <div class="pack-name">Cyber Pack</div><div class="pack-price">$900</div>
-                    <button class="buy-btn" id="btn-special_p2" onclick="buyPack('special_p2')">Buy (10 Cards)</button>
+                    <button class="buy-btn" id="btn-special_p2" onclick="buyPack('special_p2')">Buy</button>
                 </div>
                 <div class="pack-card special-pack special-p3">
                     <div class="pack-art">MYSTIC</div>
                     <div class="pack-name">Mystic Pack</div><div class="pack-price">$3,125</div>
-                    <button class="buy-btn" id="btn-special_p3" onclick="buyPack('special_p3')">Buy (10 Cards)</button>
+                    <button class="buy-btn" id="btn-special_p3" onclick="buyPack('special_p3')">Buy</button>
                 </div>
                 <div class="pack-card special-pack special-p4">
                     <div class="pack-art">SHADOW</div>
                     <div class="pack-name">Shadow Realm Pack</div><div class="pack-price">$8,910</div>
-                    <button class="buy-btn" id="btn-special_p4" onclick="buyPack('special_p4')">Buy (10 Cards)</button>
+                    <button class="buy-btn" id="btn-special_p4" onclick="buyPack('special_p4')">Buy</button>
                 </div>
                 <div class="pack-card special-pack special-p5">
                     <div class="pack-art">COSMIC</div>
                     <div class="pack-name">Cosmic God Pack</div><div class="pack-price">$15,105</div>
-                    <button class="buy-btn" id="btn-special_p5" onclick="buyPack('special_p5')">Buy (10 Cards)</button>
+                    <button class="buy-btn" id="btn-special_p5" onclick="buyPack('special_p5')">Buy</button>
                 </div>
             </div>
         </section>
@@ -676,14 +676,14 @@
         };
 
         const DROP_RATES = {
-            starter:    { COMMON: 0.96, RARE: 0.03, EPIC: 0.01, LEGENDARY: 0.00, RAINBOW: 0.00 },
-            common:     { COMMON: 0.74, RARE: 0.20, EPIC: 0.05, LEGENDARY: 0.01, RAINBOW: 0.00 },
-            rare:       { COMMON: 0.30, RARE: 0.52, EPIC: 0.15, LEGENDARY: 0.03, RAINBOW: 0.00 },
+            starter:    { COMMON: 0.97, RARE: 0.02, EPIC: 0.01, LEGENDARY: 0.00, RAINBOW: 0.00 },
+            common:     { COMMON: 0.70, RARE: 0.22, EPIC: 0.07, LEGENDARY: 0.01, RAINBOW: 0.00 },
+            rare:       { COMMON: 0.30, RARE: 0.47, EPIC: 0.20, LEGENDARY: 0.03, RAINBOW: 0.00 },
             ancient:    { COMMON: 0.10, RARE: 0.39, EPIC: 0.45, LEGENDARY: 0.05, RAINBOW: 0.01 },
             legendary:  { COMMON: 0.00, RARE: 0.17, EPIC: 0.55, LEGENDARY: 0.05, RAINBOW: 0.03 },
-            special_p1: { COMMON: 0.90, RARE: 0.08, EPIC: 0.02, LEGENDARY: 0.00, RAINBOW: 0.00 },
-            special_p2: { COMMON: 0.70, RARE: 0.20, EPIC: 0.08, LEGENDARY: 0.02, RAINBOW: 0.00 },
-            special_p3: { COMMON: 0.30, RARE: 0.45, EPIC: 0.17, LEGENDARY: 0.07, RAINBOW: 0.01 },
+            special_p1: { COMMON: 0.85, RARE: 0.13, EPIC: 0.02, LEGENDARY: 0.00, RAINBOW: 0.00 },
+            special_p2: { COMMON: 0.65, RARE: 0.20, EPIC: 0.14, LEGENDARY: 0.02, RAINBOW: 0.00 },
+            special_p3: { COMMON: 0.30, RARE: 0.40, EPIC: 0.22, LEGENDARY: 0.07, RAINBOW: 0.01 },
             special_p4: { COMMON: 0.10, RARE: 0.25, EPIC: 0.45, LEGENDARY: 0.16, RAINBOW: 0.04 },
             special_p5: { COMMON: 0.00, RARE: 0.10, EPIC: 0.35, LEGENDARY: 0.45, RAINBOW: 0.10 }
         };
