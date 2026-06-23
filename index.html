@@ -229,9 +229,36 @@
             100% { transform: scale(0); opacity: 0; filter: brightness(4); }
         }
 
+        /* --- WADAH KARTU DENGAN SCROLLBAR --- */
         .gacha-results {
-            display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px;
-            max-width: 950px; width: 100%; justify-content: center;
+            display: grid; 
+            grid-template-columns: repeat(5, 1fr); 
+            gap: 15px;
+            max-width: 950px; 
+            width: 100%; 
+            justify-content: center;
+            
+            /* Ini yang bikin bisa di-scroll */
+            max-height: 65vh; 
+            overflow-y: auto; 
+            padding: 10px;
+            padding-right: 15px; 
+        }
+
+        /* --- DESAIN TAMPILAN SCROLLBAR --- */
+        .gacha-results::-webkit-scrollbar {
+            width: 8px;
+        }
+        .gacha-results::-webkit-scrollbar-track {
+            background: rgba(30, 41, 59, 0.5); 
+            border-radius: 10px;
+        }
+        .gacha-results::-webkit-scrollbar-thumb {
+            background: #3b82f6; /* Warna biru */
+            border-radius: 10px;
+        }
+        .gacha-results::-webkit-scrollbar-thumb:hover {
+            background: #2563eb; /* Biru lebih gelap saat disorot */
         }
         @media (max-width: 768px) { .gacha-results { grid-template-columns: repeat(2, 1fr); } }
 
@@ -783,16 +810,37 @@
         }
 
         function buyPack(packType) {
-            const cost = PACKS[packType].price;
-            if (userBalance < cost) return alert("Not enough coins!");
-            userBalance -= cost; 
-            saveGameData(); // Auto-save after deduction
+            const packInfo = PACKS[packType];
+            if (!packInfo) return;
+
+            // 1. Munculkan kotak pertanyaan
+            const amountStr = prompt(`Berapa banyak ${packInfo.name} yang ingin dibeli? (Harga: $${packInfo.price} per pack)`, "1");
+            if (amountStr === null) return; // Batal jika tekan Cancel
+
+            const amount = parseInt(amountStr);
+            if (isNaN(amount) || amount <= 0) {
+                alert("Masukkan jumlah angka yang valid!");
+                return;
+            }
+
+            const totalCost = packInfo.price * amount;
+
+            // 2. Cek apakah uang cukup
+            if (userBalance < totalCost) {
+                alert(`Uang tidak cukup!\nButuh $${totalCost.toLocaleString()} untuk ${amount} pack.\nKoin Anda saat ini: $${userBalance.toLocaleString()}`);
+                return;
+            }
+
+            // 3. Potong koin dan update UI
+            userBalance -= totalCost;
+            saveGameData(); 
             updateUI();
 
-            const packInfo = PACKS[packType];
+            // 4. Kumpulkan hasil gacha sesuai jumlah pack (1 pack = 10 kartu)
             let rolledCards = [];
+            const totalCardsToRoll = 10 * amount;
 
-            for (let i = 0; i < 10; i++) {
+            for (let i = 0; i < totalCardsToRoll; i++) {
                 let rarity = rollRarity(packType);
                 let pool = [];
 
@@ -806,6 +854,7 @@
                     }
                 }
 
+                // Ambil kartu acak dari pool yang terpilih
                 let baseCard = pool[Math.floor(Math.random() * pool.length)];
                 let isBrandNew = !pokedexLog[baseCard.name];
 
@@ -817,7 +866,10 @@
                     isNewCard: isBrandNew 
                 });
             }
-            window.currentGachaResult = rolledCards; triggerGachaAnimation(packType, rolledCards);
+            
+            // 5. Simpan dan jalankan animasi gacha persis seperti bawaan kode Anda
+            window.currentGachaResult = rolledCards; 
+            triggerGachaAnimation(packType, rolledCards);
         }
 
         function triggerGachaAnimation(packType, cards) {
